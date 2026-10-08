@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import {
-  designSize,
   FORMATS,
   LANGUAGES,
   MAX_SIZE,
@@ -10,12 +9,20 @@ import {
   resolveFormat,
 } from "@/lib/formats";
 import { approvedToCsv } from "@/lib/export";
-import type { Copy, FormatId, Job, Size, Variant } from "@/lib/types";
+import type {
+  BannerImage,
+  Copy,
+  FormatId,
+  ImageLayout,
+  Job,
+  Size,
+  Variant,
+} from "@/lib/types";
+import Banner from "./banner";
+import { resizeImage } from "./resize-image";
 import {
-  ctaRadius,
   DEFAULT_STYLE,
   effectiveStyle,
-  fontFamily,
   type Align,
   type BannerStyle,
   type CtaShape,
@@ -139,9 +146,12 @@ export default function Studio() {
 
   function exportApproved() {
     if (!job) return;
-    const blob = new Blob([approvedToCsv(job.variants, bannerStyle)], {
-      type: "text/csv;charset=utf-8",
-    });
+    const blob = new Blob(
+      [approvedToCsv(job.variants, bannerStyle, window.location.origin)],
+      {
+        type: "text/csv;charset=utf-8",
+      },
+    );
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -276,11 +286,18 @@ export default function Studio() {
   );
 }
 
-type Draft = { copy: Copy; format: FormatId; size: Size; style: StyleOverride };
+type Draft = {
+  copy: Copy;
+  format: FormatId;
+  size: Size;
+  style: StyleOverride;
+  image?: BannerImage | null;
+};
 export type VariantEdit = Copy & {
   format: FormatId;
   size?: Size;
   style: StyleOverride;
+  image?: BannerImage | null;
 };
 
 function VariantCard({
@@ -304,9 +321,39 @@ function VariantCard({
   const copy = draft?.copy ?? variant.copy;
   const look = effectiveStyle(bannerStyle, draft?.style ?? variant.style);
   const failed = variant.checks.filter((c) => !c.ok);
-  const wide = format.width / format.height > 3;
-  const design = designSize(format.width, format.height);
-  const scale = Math.min(300 / design.width, 220 / design.height);
+  // undefined in a draft means "unchanged"; null means the image was removed.
+  const image =
+    draft && draft.image !== undefined
+      ? (draft.image ?? undefined)
+      : variant.image;
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  async function upload(file: File) {
+    setUploading(true);
+    setUploadError(null);
+    try {
+      const dataUrl = await resizeImage(file);
+      const res = await fetch("/api/images", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dataUrl }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Upload failed");
+      setDraft(
+        (prev) =>
+          prev && {
+            ...prev,
+            image: { id: data.id, layout: prev.image?.layout ?? "background" },
+          },
+      );
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  }
 
   function startEdit() {
     setDraft({
@@ -334,6 +381,7 @@ function VariantCard({
           ? { width: format.width, height: format.height }
           : undefined,
       style: draft.style,
+      image: draft.image,
     });
     setDraft(null);
   }
@@ -354,43 +402,7 @@ function VariantCard({
         >
           {variant.favorite ? "★" : "☆"}
         </button>
-        <div
-          style={{ width: design.width * scale, height: design.height * scale }}
-        >
-          <div
-            className={wide ? styles.previewWide : styles.preview}
-            style={{
-              width: design.width,
-              height: design.height,
-              transform: `scale(${scale})`,
-              background: look.background,
-              color: look.text,
-              fontFamily: fontFamily(look.font),
-              fontSize:
-                headlineSize(design.width, design.height, wide) *
-                look.textScale,
-              borderRadius: look.radius,
-              textAlign: look.align,
-              alignItems: wide
-                ? "center"
-                : look.align === "center"
-                  ? "center"
-                  : "flex-start",
-            }}
-          >
-            <strong>{copy.headline}</strong>
-            <span
-              className={styles.cta}
-              style={{
-                background: look.ctaBackground,
-                color: look.ctaText,
-                borderRadius: ctaRadius(look.ctaShape),
-              }}
-            >
-              {copy.cta}
-            </span>
-          </div>
-        </div>
+        <Banner copy={copy} format={format} look={look} image={image} />
       </div>
       <div className={styles.meta}>
         <p className={styles.title}>
@@ -483,6 +495,57 @@ function VariantCard({
                 </label>
               </div>
             )}
+            <div className={styles.editLabel}>
+              Image
+              <div className={styles.actions}>
+                <label className={styles.uploadButton}>
+                  {uploading
+                    ? "Uploading…"
+                    : image
+                      ? "Replace image"
+                      : "Add image"}
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    hidden
+                    disabled={uploading}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) upload(file);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+                {image && (
+                  <button
+                    type="button"
+                    className={styles.link}
+                    onClick={() => setDraft({ ...draft, image: null })}
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+              {image && (
+                <div className={styles.chips}>
+                  {(["background", "side"] as ImageLayout[]).map((layout) => (
+                    <button
+                      key={layout}
+                      type="button"
+                      className={
+                        image.layout === layout ? styles.chipOn : styles.chip
+                      }
+                      onClick={() =>
+                        setDraft({ ...draft, image: { id: image.id, layout } })
+                      }
+                    >
+                      {layout === "background" ? "Background" : "Next to text"}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {uploadError && <span className={styles.bad}>{uploadError}</span>}
+            </div>
             <label className={styles.editLabel}>
               Corners: {look.radius}px
               <input
@@ -606,9 +669,4 @@ function Counter({
       {label} ({length}/{max})
     </span>
   );
-}
-
-function headlineSize(width: number, height: number, wide: boolean): number {
-  const size = wide ? height * 0.3 : Math.min(width, height) * 0.12;
-  return Math.min(56, Math.max(18, size));
 }

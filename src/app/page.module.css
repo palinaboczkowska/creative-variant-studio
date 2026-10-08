@@ -55,7 +55,7 @@
 .editLabel input[type="range"] { accent-color: var(--accent); }
 .secondary:disabled { opacity: 0.4; cursor: default; }
 
-.preview, .previewWide { flex-shrink: 0; transform-origin: top left; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; overflow-wrap: break-word; line-height: 1.15; }
+.preview, .previewWide { flex: 1; min-width: 0; min-height: 0; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; overflow-wrap: break-word; line-height: 1.15; }
 .previewWide { flex-direction: row; align-items: center; gap: 16px; padding: 0 20px; }
 .cta { font-size: 0.6em; font-weight: 600; padding: 0.4em 0.9em; white-space: nowrap; }
 .star, .starOn { position: absolute; top: 10px; right: 10px; width: 34px; height: 34px; border-radius: 999px; border: 1px solid var(--line); background: #fff; color: var(--muted); font-size: 18px; line-height: 1; cursor: pointer; }
@@ -65,3 +65,6 @@
 .sizeRow .editLabel { flex: 1; }
 .sizeRow input { width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 7px; }
 .times { padding-bottom: 8px; color: var(--muted); }
+.banner { flex-shrink: 0; transform-origin: top left; display: flex; overflow: hidden; background-size: cover; background-position: center; }
+.bannerImage { flex-shrink: 0; background-size: cover; background-position: center; }
+.uploadButton { border: 1px solid var(--ink); border-radius: 8px; padding: 7px 12px; color: var(--ink); background: #fff; cursor: pointer; font-weight: 600; font-size: 13px; }

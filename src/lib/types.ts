@@ -5,6 +5,9 @@ export type FormatId = GeneratedFormatId | "rectangle" | "skyscraper" | "billboa
 
 export type Size = { width: number; height: number };
 
+export type ImageLayout = "background" | "side";
+export type BannerImage = { id: string; layout: ImageLayout };
+
 export interface AdFormat {
   id: FormatId;
   label: string;
@@ -47,6 +50,7 @@ export interface Variant {
   favorite?: boolean;
   // Only set when format is "custom".
   size?: Size;
+  image?: BannerImage;
 }
 
 export interface Job {

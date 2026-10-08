@@ -34,4 +34,10 @@ describe("approvedToCsv", () => {
     expect(row).toContain("pill");
     expect(row).toContain("20");
   });
+
+  it("links the banner image with the site address", () => {
+    const id = "6f1c2a52-8a39-4c1e-9b7e-2f1b2c3d4e5f";
+    const csv = approvedToCsv([variant({ image: { id, layout: "side" } })], DEFAULT_STYLE, "https://example.run.app");
+    expect(csv).toContain(`https://example.run.app/api/images/${id},side`);
+  });
 });

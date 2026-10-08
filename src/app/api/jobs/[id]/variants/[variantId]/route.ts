@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { FORMAT_IDS, MAX_SIZE, MIN_SIZE, resolveFormat } from "@/lib/formats";
-import { getJob, saveJob } from "@/lib/store";
+import { getImage, getJob, saveJob } from "@/lib/store";
 import { checkCopy } from "@/lib/validate";
 
 type Params = { params: Promise<{ id: string; variantId: string }> };
@@ -45,9 +45,10 @@ const Edit = z.object({
     })
     .partial()
     .optional(),
+  image: z.object({ id: z.string().uuid(), layout: z.enum(["background", "side"]) }).nullable().optional(),
 });
 
-// A designer edits the copy, format or shape. The checks run again against
+// A designer edits the copy, format, shape or image. The checks run again against
 // the new format's limits, and an edited variant always goes back to review.
 export async function PATCH(request: Request, ctx: Params) {
   const parsed = Edit.safeParse(await request.json().catch(() => null));
@@ -56,7 +57,10 @@ export async function PATCH(request: Request, ctx: Params) {
   const { job, variant } = await findVariant(ctx);
   if (!job || !variant) return Response.json({ error: "Not found" }, { status: 404 });
 
-  const { headline, cta, format: formatId, size, style } = parsed.data;
+  const { headline, cta, format: formatId, size, style, image } = parsed.data;
+  if (image && !(await getImage(image.id))) {
+    return Response.json({ error: "Image not found" }, { status: 400 });
+  }
   if (formatId) variant.format = formatId;
   if (variant.format === "custom") {
     if (size) variant.size = size;
@@ -65,6 +69,8 @@ export async function PATCH(request: Request, ctx: Params) {
     delete variant.size;
   }
   if (style) variant.style = style;
+  if (image === null) delete variant.image;
+  else if (image) variant.image = image;
   const format = resolveFormat(variant.format, variant.size);
   variant.copy = { headline, cta };
   variant.checks = checkCopy(variant.copy, format, variant.product, job.rules);
