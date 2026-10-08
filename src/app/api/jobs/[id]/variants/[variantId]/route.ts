@@ -45,7 +45,16 @@ const Edit = z.object({
     })
     .partial()
     .optional(),
-  image: z.object({ id: z.string().uuid(), layout: z.enum(["background", "side"]) }).nullable().optional(),
+  image: z
+    .object({
+      id: z.string().uuid(),
+      layout: z.enum(["background", "side"]),
+      share: z.number().min(15).max(80).optional(),
+      zoom: z.number().min(100).max(300).optional(),
+      fit: z.enum(["cover", "contain"]).optional(),
+    })
+    .nullable()
+    .optional(),
 });
 
 // A designer edits the copy, format, shape or image. The checks run again against

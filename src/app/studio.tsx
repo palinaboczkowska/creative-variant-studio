@@ -13,12 +13,13 @@ import type {
   BannerImage,
   Copy,
   FormatId,
+  ImageFit,
   ImageLayout,
   Job,
   Size,
   Variant,
 } from "@/lib/types";
-import Banner from "./banner";
+import Banner, { defaultImageShare } from "./banner";
 import { resizeImage } from "./resize-image";
 import {
   DEFAULT_STYLE,
@@ -329,6 +330,12 @@ function VariantCard({
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
+  function setImage(change: Partial<BannerImage>) {
+    setDraft((prev) =>
+      prev?.image ? { ...prev, image: { ...prev.image, ...change } } : prev,
+    );
+  }
+
   async function upload(file: File) {
     setUploading(true);
     setUploadError(null);
@@ -345,7 +352,11 @@ function VariantCard({
         (prev) =>
           prev && {
             ...prev,
-            image: { id: data.id, layout: prev.image?.layout ?? "background" },
+            image: {
+              ...prev.image,
+              id: data.id,
+              layout: prev.image?.layout ?? "background",
+            },
           },
       );
     } catch (err) {
@@ -535,14 +546,59 @@ function VariantCard({
                       className={
                         image.layout === layout ? styles.chipOn : styles.chip
                       }
-                      onClick={() =>
-                        setDraft({ ...draft, image: { id: image.id, layout } })
-                      }
+                      onClick={() => setImage({ layout })}
                     >
                       {layout === "background" ? "Background" : "Next to text"}
                     </button>
                   ))}
                 </div>
+              )}
+              {image && (
+                <>
+                  {image.layout === "side" && (
+                    <label className={styles.editLabel}>
+                      Image size: {image.share ?? defaultImageShare(format)}%
+                      <input
+                        type="range"
+                        min={15}
+                        max={80}
+                        value={image.share ?? defaultImageShare(format)}
+                        onChange={(e) =>
+                          setImage({ share: Number(e.target.value) })
+                        }
+                      />
+                    </label>
+                  )}
+                  <label className={styles.editLabel}>
+                    Zoom: {image.zoom ?? 100}%
+                    <input
+                      type="range"
+                      min={100}
+                      max={300}
+                      step={5}
+                      value={image.zoom ?? 100}
+                      onChange={(e) =>
+                        setImage({ zoom: Number(e.target.value) })
+                      }
+                    />
+                  </label>
+                  <div className={styles.chips}>
+                    {(["cover", "contain"] as ImageFit[]).map((fit) => (
+                      <button
+                        key={fit}
+                        type="button"
+                        className={
+                          (image.fit ?? "cover") === fit
+                            ? styles.chipOn
+                            : styles.chip
+                        }
+                        onClick={() => setImage({ fit })}
+                      >
+                        {fit === "cover" ? "Fill" : "Whole image"}
+                      </button>
+                    ))}
+                  </div>
+                </>
               )}
               {uploadError && <span className={styles.bad}>{uploadError}</span>}
             </div>

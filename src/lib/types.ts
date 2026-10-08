@@ -6,7 +6,16 @@ export type FormatId = GeneratedFormatId | "rectangle" | "skyscraper" | "billboa
 export type Size = { width: number; height: number };
 
 export type ImageLayout = "background" | "side";
-export type BannerImage = { id: string; layout: ImageLayout };
+export type ImageFit = "cover" | "contain";
+export type BannerImage = {
+  id: string;
+  layout: ImageLayout;
+  // Percent of the banner the image takes when it sits next to the text.
+  share?: number;
+  // 100 = no zoom.
+  zoom?: number;
+  fit?: ImageFit;
+};
 
 export interface AdFormat {
   id: FormatId;

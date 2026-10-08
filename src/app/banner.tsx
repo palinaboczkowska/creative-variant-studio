@@ -3,6 +3,11 @@ import { ctaRadius, fontFamily, type BannerStyle } from "@/lib/style";
 import type { AdFormat, BannerImage, Copy } from "@/lib/types";
 import styles from "./page.module.css";
 
+// How much of the banner a side image takes unless the designer changes it.
+export function defaultImageShare(format: AdFormat): number {
+  return format.width / format.height > 3 ? 25 : 45;
+}
+
 // Draws a banner at a realistic size and scales it down to fit the card.
 export default function Banner({
   copy,
@@ -19,9 +24,14 @@ export default function Banner({
   const tall = format.height / format.width > 1.3;
   const design = designSize(format.width, format.height);
   const scale = Math.min(300 / design.width, 220 / design.height);
-  const url = image ? `/api/images/${image.id}` : null;
-  const asBackground = url && image?.layout === "background";
-  const asSide = url && image?.layout === "side";
+  // Text size follows the space left for text, so a big side image means smaller text.
+  const textShare =
+    image?.layout === "side"
+      ? 1 - (image.share ?? defaultImageShare(format)) / 100
+      : 1;
+  const textArea = tall
+    ? { width: design.width, height: design.height * textShare }
+    : { width: design.width * textShare, height: design.height };
 
   return (
     <div style={{ width: design.width * scale, height: design.height * scale }}>
@@ -34,23 +44,28 @@ export default function Banner({
           flexDirection: tall ? "column" : "row",
           borderRadius: look.radius,
           backgroundColor: look.background,
-          backgroundImage: asBackground
-            ? `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url(${url})`
-            : undefined,
           color: look.text,
           fontFamily: fontFamily(look.font),
           fontSize:
-            headlineSize(design.width, design.height, wide) * look.textScale,
+            headlineSize(textArea.width, textArea.height, wide) *
+            look.textScale,
         }}
       >
-        {asSide && (
+        {image?.layout === "background" && (
+          <div className={styles.bannerBackground}>
+            <BannerPhoto image={image} />
+            <div className={styles.bannerShade} />
+          </div>
+        )}
+        {image?.layout === "side" && (
           <div
             className={styles.bannerImage}
             style={{
-              backgroundImage: `url(${url})`,
-              flexBasis: wide ? "25%" : "45%",
+              flexBasis: `${image.share ?? defaultImageShare(format)}%`,
             }}
-          />
+          >
+            <BannerPhoto image={image} />
+          </div>
         )}
         <div
           className={wide ? styles.previewWide : styles.preview}
@@ -77,6 +92,21 @@ export default function Banner({
         </div>
       </div>
     </div>
+  );
+}
+
+function BannerPhoto({ image }: { image: BannerImage }) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element -- uploaded images are served by our own API
+    <img
+      src={`/api/images/${image.id}`}
+      alt=""
+      className={styles.photo}
+      style={{
+        objectFit: image.fit ?? "cover",
+        transform: `scale(${(image.zoom ?? 100) / 100})`,
+      }}
+    />
   );
 }
 
