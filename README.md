@@ -16,6 +16,8 @@ Designer edits / approves  →  PATCH / POST /api/jobs/:id/variants/:variantId  
 1. **Generate.** `src/lib/generate.ts` asks Claude for a headline and a CTA for all three formats in one request. The response is forced into a JSON schema (Zod + structured outputs), so the app never has to parse free text.
 2. **Check.** `src/lib/validate.ts` is ordinary TypeScript, not AI. It checks that the copy fits each format's character limit, avoids banned words, contains no prices or numbers that aren't in the product data, and isn't empty. A variant that fails is flagged.
 3. **Review.** A person approves variants. Flagged variants can't be approved until someone edits the copy and the checks pass.
+4. **Adjust.** A shared brand style (colours, font, text size, corners, button shape) applies to every banner. A designer can also change one variant's size and shape. Changing the size re-runs the checks with the new format's limits.
+5. **Export.** Approved variants download as a CSV with the final copy, size and style, ready for a design tool or an ad platform.
 
 The model does the creative part. Deterministic code decides what is allowed to ship.
 
@@ -26,6 +28,11 @@ The model does the creative part. Deterministic code decides what is allowed to 
 | Square | 1080×1080 | 40 | 18 |
 | Leaderboard | 728×90 | 28 | 12 |
 | Story | 1080×1920 | 55 | 22 |
+| Medium rectangle* | 300×250 | 30 | 14 |
+| Skyscraper* | 160×600 | 35 | 12 |
+| Billboard* | 970×250 | 50 | 20 |
+
+\* Available when editing a variant. Claude writes copy for the first three.
 
 ## Stack
 

@@ -1,4 +1,7 @@
-export type FormatId = "square" | "leaderboard" | "story";
+import type { StyleOverride } from "./style";
+
+export type GeneratedFormatId = "square" | "leaderboard" | "story";
+export type FormatId = GeneratedFormatId | "rectangle" | "skyscraper" | "billboard";
 
 export interface AdFormat {
   id: FormatId;
@@ -37,6 +40,8 @@ export interface Variant {
   copy: Copy;
   checks: Check[];
   status: VariantStatus;
+  // Per-variant changes a designer made on top of the shared brand style.
+  style?: StyleOverride;
 }
 
 export interface Job {

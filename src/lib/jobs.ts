@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { FORMATS } from "./formats";
+import { GENERATED_FORMATS } from "./formats";
 import { hasApiKey, writeCopy } from "./generate";
 import { checkCopy } from "./validate";
 import type { BrandRules, Job, Product, Variant } from "./types";
@@ -11,7 +11,7 @@ export async function createJob(products: Product[], languages: string[], rules:
   const sets = await Promise.all(pairs.map(({ product, language }) => writeCopy(product, language, rules)));
 
   const variants: Variant[] = pairs.flatMap(({ product, language }, i) =>
-    FORMATS.map((format) => {
+    GENERATED_FORMATS.map((format) => {
       const copy = sets[i][format.id];
       const checks = checkCopy(copy, format, product, rules);
       return {

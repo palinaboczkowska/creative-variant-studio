@@ -26,9 +26,7 @@
 .approved { border-color: var(--ok); color: var(--ok); font-weight: 600; margin: 0; }
 .needsreview { border-color: var(--line); }
 
-.previewBox { background: #ede9e0; padding: 16px; display: flex; justify-content: center; align-items: center; height: 200px; }
-.preview, .previewWide { max-width: 100%; background: var(--ink); color: #fff; border-radius: 6px; padding: 10px; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; overflow: hidden; font-size: 13px; }
-.cta { background: var(--accent); border-radius: 4px; padding: 3px 8px; font-size: 11px; font-weight: 600; }
+.previewBox { background: #ede9e0; padding: 16px; display: flex; justify-content: center; align-items: center; height: 252px; }
 
 .meta { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
 .title { margin: 0; font-weight: 600; }
@@ -42,7 +40,6 @@
 .actions { display: flex; gap: 12px; align-items: center; }
 .link { background: none; border: none; color: var(--accent); cursor: pointer; padding: 0; font-weight: 600; }
 .secondary { align-self: auto; }
-.previewWide { flex-direction: row; align-items: center; gap: 8px; padding: 6px 10px; font-size: 11px; }
 
 .panelHead { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 .panelHead h2 { margin: 0; font-size: 18px; }
@@ -53,3 +50,11 @@
 .field input[type="range"] { accent-color: var(--accent); }
 .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
 .brand h1 { margin: 0; }
+.editLabel { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
+.editLabel select { border: 1px solid var(--line); border-radius: 8px; padding: 7px; background: #fff; color: var(--ink); }
+.editLabel input[type="range"] { accent-color: var(--accent); }
+.secondary:disabled { opacity: 0.4; cursor: default; }
+
+.preview, .previewWide { flex-shrink: 0; transform-origin: top left; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; overflow-wrap: break-word; line-height: 1.15; }
+.previewWide { flex-direction: row; align-items: center; gap: 16px; padding: 0 20px; }
+.cta { font-size: 0.6em; font-weight: 600; padding: 0.4em 0.9em; white-space: nowrap; }

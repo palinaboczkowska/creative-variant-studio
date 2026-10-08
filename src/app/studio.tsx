@@ -2,8 +2,18 @@
 
 import { useMemo, useState } from "react";
 import { FORMATS, LANGUAGES } from "@/lib/formats";
-import type { Copy, Job, Variant } from "@/lib/types";
-import { ctaRadius, DEFAULT_STYLE, fontFamily, type BannerStyle } from "@/lib/style";
+import { approvedToCsv } from "@/lib/export";
+import type { Copy, FormatId, Job, Variant } from "@/lib/types";
+import {
+  ctaRadius,
+  DEFAULT_STYLE,
+  effectiveStyle,
+  fontFamily,
+  type Align,
+  type BannerStyle,
+  type CtaShape,
+  type StyleOverride,
+} from "@/lib/style";
 import styles from "./page.module.css";
 import Logo from "./logo";
 import StylePanel from "./style-panel";
@@ -26,7 +36,9 @@ export default function Studio() {
   const [bannerStyle, setBannerStyle] = useState<BannerStyle>(DEFAULT_STYLE);
 
   function toggleLanguage(lang: string) {
-    setLanguages((prev) => (prev.includes(lang) ? prev.filter((l) => l !== lang) : [...prev, lang]));
+    setLanguages((prev) =>
+      prev.includes(lang) ? prev.filter((l) => l !== lang) : [...prev, lang],
+    );
   }
 
   async function generate() {
@@ -40,7 +52,10 @@ export default function Studio() {
           productsCsv,
           languages,
           tone,
-          bannedWords: banned.split(",").map((w) => w.trim()).filter(Boolean),
+          bannedWords: banned
+            .split(",")
+            .map((w) => w.trim())
+            .filter(Boolean),
         }),
       });
       const data = await res.json();
@@ -56,24 +71,34 @@ export default function Studio() {
 
   async function approve(variant: Variant) {
     if (!job) return;
-    const res = await fetch(`/api/jobs/${job.id}/variants/${variant.id}`, { method: "POST" });
+    const res = await fetch(`/api/jobs/${job.id}/variants/${variant.id}`, {
+      method: "POST",
+    });
     if (!res.ok) return;
     replaceVariant(await res.json());
   }
 
-  async function edit(variant: Variant, copy: Copy) {
+  async function edit(variant: Variant, change: VariantEdit) {
     if (!job) return;
     const res = await fetch(`/api/jobs/${job.id}/variants/${variant.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(copy),
+      body: JSON.stringify(change),
     });
     if (!res.ok) return;
     replaceVariant(await res.json());
   }
 
   function replaceVariant(updated: Variant) {
-    setJob((prev) => prev && { ...prev, variants: prev.variants.map((v) => (v.id === updated.id ? updated : v)) });
+    setJob(
+      (prev) =>
+        prev && {
+          ...prev,
+          variants: prev.variants.map((v) =>
+            v.id === updated.id ? updated : v,
+          ),
+        },
+    );
   }
 
   const counts = useMemo(() => {
@@ -85,7 +110,22 @@ export default function Studio() {
     return c;
   }, [job]);
 
-  const visible = (job?.variants ?? []).filter((v) => filter === "all" || v.status === filter);
+  function exportApproved() {
+    if (!job) return;
+    const blob = new Blob([approvedToCsv(job.variants, bannerStyle)], {
+      type: "text/csv;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `approved-variants-${job.id.slice(0, 8)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  const visible = (job?.variants ?? []).filter(
+    (v) => filter === "all" || v.status === filter,
+  );
 
   return (
     <main className={styles.main}>
@@ -94,13 +134,20 @@ export default function Studio() {
           <Logo />
           <h1>Creative Variant Studio</h1>
         </div>
-        <p>Claude writes ad copy for every product, language and format. Normal code checks it. A person approves it.</p>
+        <p>
+          Claude writes ad copy for every product, language and format. Normal
+          code checks it. A person approves it.
+        </p>
       </header>
 
       <section className={styles.form}>
         <label className={styles.field}>
           <span>Products (name; price; details)</span>
-          <textarea rows={5} value={productsCsv} onChange={(e) => setProductsCsv(e.target.value)} />
+          <textarea
+            rows={5}
+            value={productsCsv}
+            onChange={(e) => setProductsCsv(e.target.value)}
+          />
         </label>
 
         <div className={styles.field}>
@@ -110,7 +157,9 @@ export default function Studio() {
               <button
                 key={lang}
                 type="button"
-                className={languages.includes(lang) ? styles.chipOn : styles.chip}
+                className={
+                  languages.includes(lang) ? styles.chipOn : styles.chip
+                }
                 onClick={() => toggleLanguage(lang)}
               >
                 {lang}
@@ -130,7 +179,11 @@ export default function Studio() {
           </label>
         </div>
 
-        <button className={styles.primary} onClick={generate} disabled={loading || languages.length === 0}>
+        <button
+          className={styles.primary}
+          onClick={generate}
+          disabled={loading || languages.length === 0}
+        >
           {loading ? "Generating…" : "Generate variants"}
         </button>
         {error && <p className={styles.error}>{error}</p>}
@@ -142,21 +195,43 @@ export default function Studio() {
         <section>
           <div className={styles.summary}>
             <p>
-              {counts.all} variants · {counts.flagged} flagged · {counts.approved} approved
-              {job.source === "demo" && <span className={styles.demo}> · demo copy (no API key)</span>}
+              {counts.all} variants · {counts.flagged} flagged ·{" "}
+              {counts.approved} approved
+              {job.source === "demo" && (
+                <span className={styles.demo}> · demo copy (no API key)</span>
+              )}
             </p>
+            <button
+              className={styles.secondary}
+              onClick={exportApproved}
+              disabled={counts.approved === 0}
+            >
+              Export approved ({counts.approved})
+            </button>
             <div className={styles.chips}>
-              {(["all", "flagged", "needs-review", "approved"] as Filter[]).map((f) => (
-                <button key={f} className={filter === f ? styles.chipOn : styles.chip} onClick={() => setFilter(f)}>
-                  {f} ({counts[f]})
-                </button>
-              ))}
+              {(["all", "flagged", "needs-review", "approved"] as Filter[]).map(
+                (f) => (
+                  <button
+                    key={f}
+                    className={filter === f ? styles.chipOn : styles.chip}
+                    onClick={() => setFilter(f)}
+                  >
+                    {f} ({counts[f]})
+                  </button>
+                ),
+              )}
             </div>
           </div>
 
           <div className={styles.grid}>
             {visible.map((v) => (
-              <VariantCard key={v.id} variant={v} bannerStyle={bannerStyle} onApprove={() => approve(v)} onEdit={(copy) => edit(v, copy)} />
+              <VariantCard
+                key={v.id}
+                variant={v}
+                bannerStyle={bannerStyle}
+                onApprove={() => approve(v)}
+                onEdit={(change) => edit(v, change)}
+              />
             ))}
           </div>
         </section>
@@ -164,6 +239,9 @@ export default function Studio() {
     </main>
   );
 }
+
+type Draft = { copy: Copy; format: FormatId; style: StyleOverride };
+export type VariantEdit = Copy & { format: FormatId; style: StyleOverride };
 
 function VariantCard({
   variant,
@@ -174,49 +252,81 @@ function VariantCard({
   variant: Variant;
   bannerStyle: BannerStyle;
   onApprove: () => void;
-  onEdit: (copy: Copy) => Promise<void>;
+  onEdit: (edit: VariantEdit) => Promise<void>;
 }) {
-  const format = FORMATS.find((f) => f.id === variant.format)!;
+  const [draft, setDraft] = useState<Draft | null>(null);
+  // While editing, the preview shows the draft so the designer sees changes live.
+  const format = FORMATS.find(
+    (f) => f.id === (draft?.format ?? variant.format),
+  )!;
+  const copy = draft?.copy ?? variant.copy;
+  const look = effectiveStyle(bannerStyle, draft?.style ?? variant.style);
   const failed = variant.checks.filter((c) => !c.ok);
-  const [draft, setDraft] = useState<Copy | null>(null);
-  const box = previewSize(format.width, format.height);
   const wide = format.width / format.height > 3;
+  const design = designSize(format.width, format.height);
+  const scale = Math.min(300 / design.width, 220 / design.height);
+
+  function startEdit() {
+    setDraft({
+      copy: variant.copy,
+      format: variant.format,
+      style: variant.style ?? {},
+    });
+  }
+
+  function setStyle(change: StyleOverride) {
+    setDraft(
+      (prev) => prev && { ...prev, style: { ...prev.style, ...change } },
+    );
+  }
 
   async function save() {
     if (!draft) return;
-    await onEdit(draft);
+    await onEdit({ ...draft.copy, format: draft.format, style: draft.style });
     setDraft(null);
   }
 
   return (
-    <article className={`${styles.card} ${styles[variant.status.replace("-", "")]}`}>
+    <article
+      className={`${styles.card} ${styles[variant.status.replace("-", "")]}`}
+    >
       <div className={styles.previewBox}>
         <div
-          className={wide ? styles.previewWide : styles.preview}
-          style={{
-            width: box.width,
-            height: box.height,
-            background: bannerStyle.background,
-            color: bannerStyle.text,
-            fontFamily: fontFamily(bannerStyle.font),
-            fontSize: (wide ? 11 : 13) * bannerStyle.textScale,
-            borderRadius: bannerStyle.radius,
-            textAlign: bannerStyle.align,
-            alignItems: wide ? "center" : bannerStyle.align === "center" ? "center" : "flex-start",
-          }}
+          style={{ width: design.width * scale, height: design.height * scale }}
         >
-          <strong>{variant.copy.headline}</strong>
-          <span
-            className={styles.cta}
+          <div
+            className={wide ? styles.previewWide : styles.preview}
             style={{
-              background: bannerStyle.ctaBackground,
-              color: bannerStyle.ctaText,
-              borderRadius: ctaRadius(bannerStyle.ctaShape),
-              fontSize: (wide ? 9 : 11) * bannerStyle.textScale,
+              width: design.width,
+              height: design.height,
+              transform: `scale(${scale})`,
+              background: look.background,
+              color: look.text,
+              fontFamily: fontFamily(look.font),
+              fontSize:
+                headlineSize(design.width, design.height, wide) *
+                look.textScale,
+              borderRadius: look.radius,
+              textAlign: look.align,
+              alignItems: wide
+                ? "center"
+                : look.align === "center"
+                  ? "center"
+                  : "flex-start",
             }}
           >
-            {variant.copy.cta}
-          </span>
+            <strong>{copy.headline}</strong>
+            <span
+              className={styles.cta}
+              style={{
+                background: look.ctaBackground,
+                color: look.ctaText,
+                borderRadius: ctaRadius(look.ctaShape),
+              }}
+            >
+              {copy.cta}
+            </span>
+          </div>
         </div>
       </div>
       <div className={styles.meta}>
@@ -224,31 +334,120 @@ function VariantCard({
           {variant.product.name} · {variant.language}
         </p>
         <p className={styles.muted}>{format.label}</p>
-        <ul className={styles.checks}>
-          {variant.checks.map((c) => (
-            <li key={c.rule} className={c.ok ? styles.ok : styles.bad}>
-              {c.ok ? "✓" : "✗"} {c.rule}
-              {c.detail && <span className={styles.muted}> · {c.detail}</span>}
-            </li>
-          ))}
-        </ul>
-        {variant.status === "flagged" && <p className={styles.bad}>Flagged: {failed.map((c) => c.rule).join(", ")}</p>}
-        {variant.status === "approved" && <p className={styles.approved}>Approved</p>}
 
         {draft ? (
           <div className={styles.editor}>
-            <input
-              aria-label="Headline"
-              value={draft.headline}
-              onChange={(e) => setDraft({ ...draft, headline: e.target.value })}
-            />
-            <span className={styles.muted}>
-              {draft.headline.length}/{format.maxHeadline}
-            </span>
-            <input aria-label="CTA" value={draft.cta} onChange={(e) => setDraft({ ...draft, cta: e.target.value })} />
+            <label className={styles.editLabel}>
+              <Counter
+                label="Headline"
+                length={draft.copy.headline.length}
+                max={format.maxHeadline}
+              />
+              <input
+                value={draft.copy.headline}
+                onChange={(e) =>
+                  setDraft({
+                    ...draft,
+                    copy: { ...draft.copy, headline: e.target.value },
+                  })
+                }
+              />
+            </label>
+            <label className={styles.editLabel}>
+              <Counter
+                label="CTA"
+                length={draft.copy.cta.length}
+                max={format.maxCta}
+              />
+              <input
+                value={draft.copy.cta}
+                onChange={(e) =>
+                  setDraft({
+                    ...draft,
+                    copy: { ...draft.copy, cta: e.target.value },
+                  })
+                }
+              />
+            </label>
+            <label className={styles.editLabel}>
+              Banner size
+              <select
+                value={draft.format}
+                onChange={(e) =>
+                  setDraft({ ...draft, format: e.target.value as FormatId })
+                }
+              >
+                {FORMATS.map((f) => (
+                  <option key={f.id} value={f.id}>
+                    {f.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className={styles.editLabel}>
+              Corners: {look.radius}px
+              <input
+                type="range"
+                min={0}
+                max={40}
+                value={look.radius}
+                onChange={(e) => setStyle({ radius: Number(e.target.value) })}
+              />
+            </label>
+            <label className={styles.editLabel}>
+              Text size: {Math.round(look.textScale * 100)}%
+              <input
+                type="range"
+                min={0.7}
+                max={1.6}
+                step={0.05}
+                value={look.textScale}
+                onChange={(e) =>
+                  setStyle({ textScale: Number(e.target.value) })
+                }
+              />
+            </label>
+            <div className={styles.editLabel}>
+              Button shape
+              <div className={styles.chips}>
+                {(["square", "rounded", "pill"] as CtaShape[]).map((shape) => (
+                  <button
+                    key={shape}
+                    type="button"
+                    className={
+                      look.ctaShape === shape ? styles.chipOn : styles.chip
+                    }
+                    onClick={() => setStyle({ ctaShape: shape })}
+                  >
+                    {shape}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className={styles.editLabel}>
+              Alignment
+              <div className={styles.chips}>
+                {(["left", "center"] as Align[]).map((a) => (
+                  <button
+                    key={a}
+                    type="button"
+                    className={look.align === a ? styles.chipOn : styles.chip}
+                    onClick={() => setStyle({ align: a })}
+                  >
+                    {a}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className={styles.actions}>
               <button className={styles.secondary} onClick={save}>
                 Save and re-check
+              </button>
+              <button
+                className={styles.link}
+                onClick={() => setDraft({ ...draft, style: {} })}
+              >
+                Use brand style
               </button>
               <button className={styles.link} onClick={() => setDraft(null)}>
                 Cancel
@@ -256,26 +455,68 @@ function VariantCard({
             </div>
           </div>
         ) : (
-          <div className={styles.actions}>
-            {variant.status === "needs-review" && (
-              <button className={styles.secondary} onClick={onApprove}>
-                Approve
-              </button>
+          <>
+            <ul className={styles.checks}>
+              {variant.checks.map((c) => (
+                <li key={c.rule} className={c.ok ? styles.ok : styles.bad}>
+                  {c.ok ? "✓" : "✗"} {c.rule}
+                  {c.detail && (
+                    <span className={styles.muted}> · {c.detail}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+            {variant.status === "flagged" && (
+              <p className={styles.bad}>
+                Flagged: {failed.map((c) => c.rule).join(", ")}
+              </p>
             )}
-            {variant.status !== "approved" && (
-              <button className={styles.link} onClick={() => setDraft(variant.copy)}>
-                Edit copy
-              </button>
+            {variant.status === "approved" && (
+              <p className={styles.approved}>Approved</p>
             )}
-          </div>
+            <div className={styles.actions}>
+              {variant.status === "needs-review" && (
+                <button className={styles.secondary} onClick={onApprove}>
+                  Approve
+                </button>
+              )}
+              {variant.status !== "approved" && (
+                <button className={styles.link} onClick={startEdit}>
+                  Edit
+                </button>
+              )}
+            </div>
+          </>
         )}
       </div>
     </article>
   );
 }
 
-// Scales a format to fit the 300×168 preview area and keeps its proportions.
-function previewSize(width: number, height: number) {
-  const scale = Math.min(300 / width, 168 / height);
-  return { width: Math.round(width * scale), height: Math.max(Math.round(height * scale), 40) };
+function Counter({
+  label,
+  length,
+  max,
+}: {
+  label: string;
+  length: number;
+  max: number;
+}) {
+  return (
+    <span className={length > max ? styles.bad : undefined}>
+      {label} ({length}/{max})
+    </span>
+  );
+}
+
+// Banners are drawn at a realistic size and then scaled down to fit the card.
+// Social formats (1080 px wide) are drawn at a third of their size, web banners at full size.
+function designSize(width: number, height: number) {
+  const factor = width >= 1080 ? 3 : 1;
+  return { width: width / factor, height: height / factor };
+}
+
+function headlineSize(width: number, height: number, wide: boolean): number {
+  const size = wide ? height * 0.3 : Math.min(width, height) * 0.12;
+  return Math.min(56, Math.max(18, size));
 }

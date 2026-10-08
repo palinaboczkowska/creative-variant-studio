@@ -2,6 +2,8 @@ export type FontId = "geist" | "grotesk" | "playfair" | "bebas";
 export type CtaShape = "square" | "rounded" | "pill";
 export type Align = "left" | "center";
 
+export type StyleOverride = Partial<Pick<BannerStyle, "radius" | "ctaShape" | "textScale" | "align">>;
+
 export interface BannerStyle {
   background: string;
   text: string;
@@ -88,4 +90,8 @@ export function fontFamily(id: FontId): string {
 
 export function ctaRadius(shape: CtaShape): number {
   return shape === "pill" ? 999 : shape === "rounded" ? 4 : 0;
+}
+
+export function effectiveStyle(brand: BannerStyle, override?: StyleOverride): BannerStyle {
+  return { ...brand, ...override };
 }

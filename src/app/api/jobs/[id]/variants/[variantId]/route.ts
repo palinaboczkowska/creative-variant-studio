@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { FORMATS } from "@/lib/formats";
+import { FORMAT_IDS, FORMATS } from "@/lib/formats";
 import { getJob, saveJob } from "@/lib/store";
 import { checkCopy } from "@/lib/validate";
 
@@ -26,10 +26,23 @@ export async function POST(_request: Request, ctx: Params) {
   return Response.json(variant);
 }
 
-const Edit = z.object({ headline: z.string().max(200), cta: z.string().max(100) });
+const Edit = z.object({
+  headline: z.string().max(200),
+  cta: z.string().max(100),
+  format: z.enum(FORMAT_IDS).optional(),
+  style: z
+    .object({
+      radius: z.number().min(0).max(40),
+      ctaShape: z.enum(["square", "rounded", "pill"]),
+      textScale: z.number().min(0.7).max(1.6),
+      align: z.enum(["left", "center"]),
+    })
+    .partial()
+    .optional(),
+});
 
-// A designer edits the copy. The same checks run again, and an edited
-// variant always goes back to review.
+// A designer edits the copy, format or shape. The checks run again against
+// the new format's limits, and an edited variant always goes back to review.
 export async function PATCH(request: Request, ctx: Params) {
   const parsed = Edit.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return Response.json({ error: "Invalid copy" }, { status: 400 });
@@ -37,8 +50,11 @@ export async function PATCH(request: Request, ctx: Params) {
   const { job, variant } = await findVariant(ctx);
   if (!job || !variant) return Response.json({ error: "Not found" }, { status: 404 });
 
+  const { headline, cta, format: formatId, style } = parsed.data;
+  if (formatId) variant.format = formatId;
+  if (style) variant.style = style;
   const format = FORMATS.find((f) => f.id === variant.format)!;
-  variant.copy = parsed.data;
+  variant.copy = { headline, cta };
   variant.checks = checkCopy(variant.copy, format, variant.product, job.rules);
   variant.status = variant.checks.every((c) => c.ok) ? "needs-review" : "flagged";
   await saveJob(job);

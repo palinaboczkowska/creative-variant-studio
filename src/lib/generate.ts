@@ -1,8 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
-import { FORMATS } from "./formats";
-import type { BrandRules, Copy, FormatId, Product } from "./types";
+import { GENERATED_FORMATS } from "./formats";
+import type { BrandRules, Copy, GeneratedFormatId, Product } from "./types";
 
 const CopySchema = z.object({ headline: z.string(), cta: z.string() });
 const VariantSetSchema = z.object({
@@ -10,7 +10,7 @@ const VariantSetSchema = z.object({
   leaderboard: CopySchema,
   story: CopySchema,
 });
-export type VariantSet = Record<FormatId, Copy>;
+export type VariantSet = Record<GeneratedFormatId, Copy>;
 
 export const MODEL = "claude-opus-5";
 
@@ -24,7 +24,7 @@ export async function writeCopy(product: Product, language: string, rules: Brand
   if (!hasApiKey()) return demoCopy(product, language);
 
   const client = new Anthropic();
-  const limits = FORMATS.map(
+  const limits = GENERATED_FORMATS.map(
     (f) => `- ${f.id} (${f.label}): headline max ${f.maxHeadline} characters, CTA max ${f.maxCta} characters`,
   ).join("\n");
 
