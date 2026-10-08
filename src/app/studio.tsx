@@ -5,6 +5,7 @@ import { FORMATS, LANGUAGES } from "@/lib/formats";
 import type { Copy, Job, Variant } from "@/lib/types";
 import { ctaRadius, DEFAULT_STYLE, fontFamily, type BannerStyle } from "@/lib/style";
 import styles from "./page.module.css";
+import Logo from "./logo";
 import StylePanel from "./style-panel";
 
 const SAMPLE_PRODUCTS = `Rain Jacket; 899 kr; Waterproof, 2 colours
@@ -89,7 +90,10 @@ export default function Studio() {
   return (
     <main className={styles.main}>
       <header className={styles.header}>
-        <h1>Creative Variant Studio</h1>
+        <div className={styles.brand}>
+          <Logo />
+          <h1>Creative Variant Studio</h1>
+        </div>
         <p>Claude writes ad copy for every product, language and format. Normal code checks it. A person approves it.</p>
       </header>
 
