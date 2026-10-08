@@ -11,7 +11,7 @@ const Body = z.object({
   bannedWords: z.array(z.string().max(40)).max(30).default([]),
 });
 
-const MAX_PRODUCTS = 10;
+const MAX_PRODUCTS = 5;
 
 export async function POST(request: Request) {
   const parsed = Body.safeParse(await request.json().catch(() => null));
