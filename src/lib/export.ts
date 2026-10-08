@@ -1,4 +1,4 @@
-import { FORMATS } from "./formats";
+import { resolveFormat } from "./formats";
 import { effectiveStyle, type BannerStyle } from "./style";
 import type { Variant } from "./types";
 
@@ -28,7 +28,7 @@ export function approvedToCsv(variants: Variant[], brand: BannerStyle): string {
   const rows = variants
     .filter((v) => v.status === "approved")
     .map((v) => {
-      const format = FORMATS.find((f) => f.id === v.format)!;
+      const format = resolveFormat(v.format, v.size);
       const s = effectiveStyle(brand, v.style);
       return [
         v.product.name,

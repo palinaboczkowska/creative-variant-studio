@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { FORMAT_IDS, FORMATS } from "@/lib/formats";
+import { FORMAT_IDS, MAX_SIZE, MIN_SIZE, resolveFormat } from "@/lib/formats";
 import { getJob, saveJob } from "@/lib/store";
 import { checkCopy } from "@/lib/validate";
 
@@ -30,6 +30,12 @@ const Edit = z.object({
   headline: z.string().max(200),
   cta: z.string().max(100),
   format: z.enum(FORMAT_IDS).optional(),
+  size: z
+    .object({
+      width: z.number().int().min(MIN_SIZE).max(MAX_SIZE),
+      height: z.number().int().min(MIN_SIZE).max(MAX_SIZE),
+    })
+    .optional(),
   style: z
     .object({
       radius: z.number().min(0).max(40),
@@ -50,10 +56,16 @@ export async function PATCH(request: Request, ctx: Params) {
   const { job, variant } = await findVariant(ctx);
   if (!job || !variant) return Response.json({ error: "Not found" }, { status: 404 });
 
-  const { headline, cta, format: formatId, style } = parsed.data;
+  const { headline, cta, format: formatId, size, style } = parsed.data;
   if (formatId) variant.format = formatId;
+  if (variant.format === "custom") {
+    if (size) variant.size = size;
+    if (!variant.size) return Response.json({ error: "Custom format needs a size" }, { status: 400 });
+  } else {
+    delete variant.size;
+  }
   if (style) variant.style = style;
-  const format = FORMATS.find((f) => f.id === variant.format)!;
+  const format = resolveFormat(variant.format, variant.size);
   variant.copy = { headline, cta };
   variant.checks = checkCopy(variant.copy, format, variant.product, job.rules);
   variant.status = variant.checks.every((c) => c.ok) ? "needs-review" : "flagged";

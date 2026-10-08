@@ -1,9 +1,16 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { FORMATS, LANGUAGES } from "@/lib/formats";
+import {
+  designSize,
+  FORMATS,
+  LANGUAGES,
+  MAX_SIZE,
+  MIN_SIZE,
+  resolveFormat,
+} from "@/lib/formats";
 import { approvedToCsv } from "@/lib/export";
-import type { Copy, FormatId, Job, Variant } from "@/lib/types";
+import type { Copy, FormatId, Job, Size, Variant } from "@/lib/types";
 import {
   ctaRadius,
   DEFAULT_STYLE,
@@ -80,11 +87,14 @@ export default function Studio() {
 
   async function toggleFavorite(variant: Variant) {
     if (!job) return;
-    const res = await fetch(`/api/jobs/${job.id}/variants/${variant.id}/favorite`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ favorite: !variant.favorite }),
-    });
+    const res = await fetch(
+      `/api/jobs/${job.id}/variants/${variant.id}/favorite`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ favorite: !variant.favorite }),
+      },
+    );
     if (res.ok) replaceVariant(await res.json());
   }
 
@@ -112,7 +122,13 @@ export default function Studio() {
   }
 
   const counts = useMemo(() => {
-    const c = { all: 0, favorites: 0, flagged: 0, "needs-review": 0, approved: 0 };
+    const c = {
+      all: 0,
+      favorites: 0,
+      flagged: 0,
+      "needs-review": 0,
+      approved: 0,
+    };
     for (const v of job?.variants ?? []) {
       c.all++;
       if (v.favorite) c.favorites++;
@@ -135,7 +151,9 @@ export default function Studio() {
   }
 
   const visible = (job?.variants ?? []).filter(
-    (v) => filter === "all" || (filter === "favorites" ? v.favorite : v.status === filter),
+    (v) =>
+      filter === "all" ||
+      (filter === "favorites" ? v.favorite : v.status === filter),
   );
 
   return (
@@ -220,17 +238,23 @@ export default function Studio() {
               Export approved ({counts.approved})
             </button>
             <div className={styles.chips}>
-              {(["all", "favorites", "flagged", "needs-review", "approved"] as Filter[]).map(
-                (f) => (
-                  <button
-                    key={f}
-                    className={filter === f ? styles.chipOn : styles.chip}
-                    onClick={() => setFilter(f)}
-                  >
-                    {f} ({counts[f]})
-                  </button>
-                ),
-              )}
+              {(
+                [
+                  "all",
+                  "favorites",
+                  "flagged",
+                  "needs-review",
+                  "approved",
+                ] as Filter[]
+              ).map((f) => (
+                <button
+                  key={f}
+                  className={filter === f ? styles.chipOn : styles.chip}
+                  onClick={() => setFilter(f)}
+                >
+                  {f} ({counts[f]})
+                </button>
+              ))}
             </div>
           </div>
 
@@ -252,8 +276,12 @@ export default function Studio() {
   );
 }
 
-type Draft = { copy: Copy; format: FormatId; style: StyleOverride };
-export type VariantEdit = Copy & { format: FormatId; style: StyleOverride };
+type Draft = { copy: Copy; format: FormatId; size: Size; style: StyleOverride };
+export type VariantEdit = Copy & {
+  format: FormatId;
+  size?: Size;
+  style: StyleOverride;
+};
 
 function VariantCard({
   variant,
@@ -270,9 +298,9 @@ function VariantCard({
 }) {
   const [draft, setDraft] = useState<Draft | null>(null);
   // While editing, the preview shows the draft so the designer sees changes live.
-  const format = FORMATS.find(
-    (f) => f.id === (draft?.format ?? variant.format),
-  )!;
+  const format = draft
+    ? resolveFormat(draft.format, draft.size)
+    : resolveFormat(variant.format, variant.size);
   const copy = draft?.copy ?? variant.copy;
   const look = effectiveStyle(bannerStyle, draft?.style ?? variant.style);
   const failed = variant.checks.filter((c) => !c.ok);
@@ -284,6 +312,7 @@ function VariantCard({
     setDraft({
       copy: variant.copy,
       format: variant.format,
+      size: { width: format.width, height: format.height },
       style: variant.style ?? {},
     });
   }
@@ -296,7 +325,16 @@ function VariantCard({
 
   async function save() {
     if (!draft) return;
-    await onEdit({ ...draft.copy, format: draft.format, style: draft.style });
+    await onEdit({
+      ...draft.copy,
+      format: draft.format,
+      // format is already clamped to the allowed range
+      size:
+        draft.format === "custom"
+          ? { width: format.width, height: format.height }
+          : undefined,
+      style: draft.style,
+    });
     setDraft(null);
   }
 
@@ -309,7 +347,9 @@ function VariantCard({
           type="button"
           className={variant.favorite ? styles.starOn : styles.star}
           onClick={onToggleFavorite}
-          aria-label={variant.favorite ? "Remove from favourites" : "Add to favourites"}
+          aria-label={
+            variant.favorite ? "Remove from favourites" : "Add to favourites"
+          }
           aria-pressed={Boolean(variant.favorite)}
         >
           {variant.favorite ? "★" : "☆"}
@@ -405,8 +445,44 @@ function VariantCard({
                     {f.label}
                   </option>
                 ))}
+                <option value="custom">Custom size…</option>
               </select>
             </label>
+            {draft.format === "custom" && (
+              <div className={styles.sizeRow}>
+                <label className={styles.editLabel}>
+                  Width (px)
+                  <input
+                    type="number"
+                    min={MIN_SIZE}
+                    max={MAX_SIZE}
+                    value={draft.size.width}
+                    onChange={(e) =>
+                      setDraft({
+                        ...draft,
+                        size: { ...draft.size, width: Number(e.target.value) },
+                      })
+                    }
+                  />
+                </label>
+                <span className={styles.times}>×</span>
+                <label className={styles.editLabel}>
+                  Height (px)
+                  <input
+                    type="number"
+                    min={MIN_SIZE}
+                    max={MAX_SIZE}
+                    value={draft.size.height}
+                    onChange={(e) =>
+                      setDraft({
+                        ...draft,
+                        size: { ...draft.size, height: Number(e.target.value) },
+                      })
+                    }
+                  />
+                </label>
+              </div>
+            )}
             <label className={styles.editLabel}>
               Corners: {look.radius}px
               <input
@@ -530,13 +606,6 @@ function Counter({
       {label} ({length}/{max})
     </span>
   );
-}
-
-// Banners are drawn at a realistic size and then scaled down to fit the card.
-// Social formats (1080 px wide) are drawn at a third of their size, web banners at full size.
-function designSize(width: number, height: number) {
-  const factor = width >= 1080 ? 3 : 1;
-  return { width: width / factor, height: height / factor };
 }
 
 function headlineSize(width: number, height: number, wide: boolean): number {

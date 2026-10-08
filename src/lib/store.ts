@@ -6,10 +6,12 @@ import type { Job } from "./types";
 const useFirestore = Boolean(process.env.GOOGLE_CLOUD_PROJECT || process.env.K_SERVICE);
 
 let db: Firestore | null = null;
-const memory = new Map<string, Job>();
+// Kept on globalThis so jobs survive hot reloads in development.
+const globalStore = globalThis as unknown as { __jobs?: Map<string, Job> };
+const memory = (globalStore.__jobs ??= new Map<string, Job>());
 
 function collection() {
-  db ??= new Firestore();
+  db ??= new Firestore({ ignoreUndefinedProperties: true });
   return db.collection("jobs");
 }
 

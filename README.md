@@ -32,7 +32,7 @@ The model does the creative part. Deterministic code decides what is allowed to 
 | Skyscraper* | 160×600 | 35 | 12 |
 | Billboard* | 970×250 | 50 | 20 |
 
-\* Available when editing a variant. Claude writes copy for the first three.
+\* Available when editing a variant. Claude writes copy for the first three. A designer can also enter any custom size; its text limits are estimated from the banner's area (or, for wide banners, from width and number of lines).
 
 ## Stack
 

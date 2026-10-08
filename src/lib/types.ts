@@ -1,7 +1,9 @@
 import type { StyleOverride } from "./style";
 
 export type GeneratedFormatId = "square" | "leaderboard" | "story";
-export type FormatId = GeneratedFormatId | "rectangle" | "skyscraper" | "billboard";
+export type FormatId = GeneratedFormatId | "rectangle" | "skyscraper" | "billboard" | "custom";
+
+export type Size = { width: number; height: number };
 
 export interface AdFormat {
   id: FormatId;
@@ -43,6 +45,8 @@ export interface Variant {
   // Per-variant changes a designer made on top of the shared brand style.
   style?: StyleOverride;
   favorite?: boolean;
+  // Only set when format is "custom".
+  size?: Size;
 }
 
 export interface Job {

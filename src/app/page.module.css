@@ -61,3 +61,7 @@
 .star, .starOn { position: absolute; top: 10px; right: 10px; width: 34px; height: 34px; border-radius: 999px; border: 1px solid var(--line); background: #fff; color: var(--muted); font-size: 18px; line-height: 1; cursor: pointer; }
 .starOn { color: #e0a100; border-color: #e0a100; }
 .star:hover { color: #e0a100; }
+.sizeRow { display: flex; align-items: flex-end; gap: 8px; }
+.sizeRow .editLabel { flex: 1; }
+.sizeRow input { width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 7px; }
+.times { padding-bottom: 8px; color: var(--muted); }
