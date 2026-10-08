@@ -43,3 +43,11 @@
 .link { background: none; border: none; color: var(--accent); cursor: pointer; padding: 0; font-weight: 600; }
 .secondary { align-self: auto; }
 .previewWide { flex-direction: row; align-items: center; gap: 8px; padding: 6px 10px; font-size: 11px; }
+
+.panelHead { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.panelHead h2 { margin: 0; font-size: 18px; }
+.styleGrid { display: flex; gap: 16px; flex-wrap: wrap; }
+.colorField { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); }
+.colorField input { width: 40px; height: 32px; border: 1px solid var(--line); border-radius: 8px; padding: 2px; background: #fff; cursor: pointer; }
+.field select { border: 1px solid var(--line); border-radius: 10px; padding: 9px; color: var(--ink); background: #fff; }
+.field input[type="range"] { accent-color: var(--accent); }

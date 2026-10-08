@@ -3,7 +3,9 @@
 import { useMemo, useState } from "react";
 import { FORMATS, LANGUAGES } from "@/lib/formats";
 import type { Copy, Job, Variant } from "@/lib/types";
+import { ctaRadius, DEFAULT_STYLE, fontFamily, type BannerStyle } from "@/lib/style";
 import styles from "./page.module.css";
+import StylePanel from "./style-panel";
 
 const SAMPLE_PRODUCTS = `Rain Jacket; 899 kr; Waterproof, 2 colours
 Wool Beanie; 249 kr; Merino wool
@@ -20,6 +22,7 @@ export default function Studio() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>("all");
+  const [bannerStyle, setBannerStyle] = useState<BannerStyle>(DEFAULT_STYLE);
 
   function toggleLanguage(lang: string) {
     setLanguages((prev) => (prev.includes(lang) ? prev.filter((l) => l !== lang) : [...prev, lang]));
@@ -129,6 +132,8 @@ export default function Studio() {
         {error && <p className={styles.error}>{error}</p>}
       </section>
 
+      <StylePanel value={bannerStyle} onChange={setBannerStyle} />
+
       {job && (
         <section>
           <div className={styles.summary}>
@@ -147,7 +152,7 @@ export default function Studio() {
 
           <div className={styles.grid}>
             {visible.map((v) => (
-              <VariantCard key={v.id} variant={v} onApprove={() => approve(v)} onEdit={(copy) => edit(v, copy)} />
+              <VariantCard key={v.id} variant={v} bannerStyle={bannerStyle} onApprove={() => approve(v)} onEdit={(copy) => edit(v, copy)} />
             ))}
           </div>
         </section>
@@ -158,10 +163,12 @@ export default function Studio() {
 
 function VariantCard({
   variant,
+  bannerStyle,
   onApprove,
   onEdit,
 }: {
   variant: Variant;
+  bannerStyle: BannerStyle;
   onApprove: () => void;
   onEdit: (copy: Copy) => Promise<void>;
 }) {
@@ -180,9 +187,32 @@ function VariantCard({
   return (
     <article className={`${styles.card} ${styles[variant.status.replace("-", "")]}`}>
       <div className={styles.previewBox}>
-        <div className={wide ? styles.previewWide : styles.preview} style={{ width: box.width, height: box.height }}>
+        <div
+          className={wide ? styles.previewWide : styles.preview}
+          style={{
+            width: box.width,
+            height: box.height,
+            background: bannerStyle.background,
+            color: bannerStyle.text,
+            fontFamily: fontFamily(bannerStyle.font),
+            fontSize: (wide ? 11 : 13) * bannerStyle.textScale,
+            borderRadius: bannerStyle.radius,
+            textAlign: bannerStyle.align,
+            alignItems: wide ? "center" : bannerStyle.align === "center" ? "center" : "flex-start",
+          }}
+        >
           <strong>{variant.copy.headline}</strong>
-          <span className={styles.cta}>{variant.copy.cta}</span>
+          <span
+            className={styles.cta}
+            style={{
+              background: bannerStyle.ctaBackground,
+              color: bannerStyle.ctaText,
+              borderRadius: ctaRadius(bannerStyle.ctaShape),
+              fontSize: (wide ? 9 : 11) * bannerStyle.textScale,
+            }}
+          >
+            {variant.copy.cta}
+          </span>
         </div>
       </div>
       <div className={styles.meta}>
