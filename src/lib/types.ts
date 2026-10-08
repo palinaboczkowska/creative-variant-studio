@@ -42,6 +42,7 @@ export interface Variant {
   status: VariantStatus;
   // Per-variant changes a designer made on top of the shared brand style.
   style?: StyleOverride;
+  favorite?: boolean;
 }
 
 export interface Job {

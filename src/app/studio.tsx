@@ -22,7 +22,7 @@ const SAMPLE_PRODUCTS = `Rain Jacket; 899 kr; Waterproof, 2 colours
 Wool Beanie; 249 kr; Merino wool
 Trail Boots; 1299 kr; Grippy sole, sizes 36-46`;
 
-type Filter = "all" | "flagged" | "needs-review" | "approved";
+type Filter = "all" | "favorites" | "flagged" | "needs-review" | "approved";
 
 export default function Studio() {
   const [productsCsv, setProductsCsv] = useState(SAMPLE_PRODUCTS);
@@ -78,6 +78,16 @@ export default function Studio() {
     replaceVariant(await res.json());
   }
 
+  async function toggleFavorite(variant: Variant) {
+    if (!job) return;
+    const res = await fetch(`/api/jobs/${job.id}/variants/${variant.id}/favorite`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ favorite: !variant.favorite }),
+    });
+    if (res.ok) replaceVariant(await res.json());
+  }
+
   async function edit(variant: Variant, change: VariantEdit) {
     if (!job) return;
     const res = await fetch(`/api/jobs/${job.id}/variants/${variant.id}`, {
@@ -102,9 +112,10 @@ export default function Studio() {
   }
 
   const counts = useMemo(() => {
-    const c = { all: 0, flagged: 0, "needs-review": 0, approved: 0 };
+    const c = { all: 0, favorites: 0, flagged: 0, "needs-review": 0, approved: 0 };
     for (const v of job?.variants ?? []) {
       c.all++;
+      if (v.favorite) c.favorites++;
       c[v.status]++;
     }
     return c;
@@ -124,7 +135,7 @@ export default function Studio() {
   }
 
   const visible = (job?.variants ?? []).filter(
-    (v) => filter === "all" || v.status === filter,
+    (v) => filter === "all" || (filter === "favorites" ? v.favorite : v.status === filter),
   );
 
   return (
@@ -209,7 +220,7 @@ export default function Studio() {
               Export approved ({counts.approved})
             </button>
             <div className={styles.chips}>
-              {(["all", "flagged", "needs-review", "approved"] as Filter[]).map(
+              {(["all", "favorites", "flagged", "needs-review", "approved"] as Filter[]).map(
                 (f) => (
                   <button
                     key={f}
@@ -231,6 +242,7 @@ export default function Studio() {
                 bannerStyle={bannerStyle}
                 onApprove={() => approve(v)}
                 onEdit={(change) => edit(v, change)}
+                onToggleFavorite={() => toggleFavorite(v)}
               />
             ))}
           </div>
@@ -247,11 +259,13 @@ function VariantCard({
   variant,
   bannerStyle,
   onApprove,
+  onToggleFavorite,
   onEdit,
 }: {
   variant: Variant;
   bannerStyle: BannerStyle;
   onApprove: () => void;
+  onToggleFavorite: () => void;
   onEdit: (edit: VariantEdit) => Promise<void>;
 }) {
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -291,6 +305,15 @@ function VariantCard({
       className={`${styles.card} ${styles[variant.status.replace("-", "")]}`}
     >
       <div className={styles.previewBox}>
+        <button
+          type="button"
+          className={variant.favorite ? styles.starOn : styles.star}
+          onClick={onToggleFavorite}
+          aria-label={variant.favorite ? "Remove from favourites" : "Add to favourites"}
+          aria-pressed={Boolean(variant.favorite)}
+        >
+          {variant.favorite ? "★" : "☆"}
+        </button>
         <div
           style={{ width: design.width * scale, height: design.height * scale }}
         >

@@ -20,6 +20,7 @@ const COLUMNS = [
   "corner_radius",
   "button_shape",
   "align",
+  "favorite",
 ];
 
 // One row per approved variant, with the final copy and the style it was approved with.
@@ -47,6 +48,7 @@ export function approvedToCsv(variants: Variant[], brand: BannerStyle): string {
         s.radius,
         s.ctaShape,
         s.align,
+        v.favorite ? "yes" : "no",
       ];
     });
   return [COLUMNS, ...rows].map((row) => row.map(csvCell).join(",")).join("\n") + "\n";
