@@ -1,5 +1,7 @@
 # Creative Variant Studio
 
+[![CI](https://github.com/palinaboczkowska/creative-variant-studio/actions/workflows/ci.yml/badge.svg)](https://github.com/palinaboczkowska/creative-variant-studio/actions/workflows/ci.yml)
+
 A small tool for creative production teams. You paste a product feed, pick languages and brand rules, and the app writes ad copy for every product × language × format. Each variant is checked by plain code and has to be approved by a person before it can be used.
 
 **Live demo:** https://creative-variant-studio-173727362113.europe-north1.run.app
