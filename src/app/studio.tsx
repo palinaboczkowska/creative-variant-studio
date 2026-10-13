@@ -182,6 +182,9 @@ export default function Studio() {
       </header>
 
       <section className={styles.form}>
+        <h2 className={styles.step}>
+          <span className={styles.stepNum}>1</span>Products & rules
+        </h2>
         <label className={styles.field}>
           <span>Products (name; price; details)</span>
           <textarea
@@ -234,6 +237,10 @@ export default function Studio() {
 
       {job && (
         <section>
+          <h2 className={styles.step}>
+            <span className={`${styles.stepNum} ${styles.stepNum3}`}>3</span>
+            Review & approve
+          </h2>
           <div className={styles.summary}>
             <p>
               {counts.all} variants · {counts.flagged} flagged ·{" "}
@@ -419,6 +426,15 @@ function VariantCard({
       className={`${styles.card} ${styles[variant.status.replace("-", "")]}`}
     >
       <div className={styles.previewBox}>
+        <span
+          className={`${styles.status} ${styles["status_" + variant.status.replace("-", "")]}`}
+        >
+          {variant.status === "needs-review"
+            ? "Needs review"
+            : variant.status === "flagged"
+              ? "Flagged"
+              : "Approved"}
+        </span>
         <button
           type="button"
           className={variant.favorite ? styles.starOn : styles.star}

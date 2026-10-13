@@ -1,25 +1,50 @@
 "use client";
 
-import { FONTS, PRESETS, type Align, type BannerStyle, type CtaShape, type FontId } from "@/lib/style";
+import {
+  FONTS,
+  PRESETS,
+  type Align,
+  type BannerStyle,
+  type CtaShape,
+  type FontId,
+} from "@/lib/style";
 import styles from "./page.module.css";
 
-const COLORS: { key: "background" | "text" | "ctaBackground" | "ctaText"; label: string }[] = [
+const COLORS: {
+  key: "background" | "text" | "ctaBackground" | "ctaText";
+  label: string;
+}[] = [
   { key: "background", label: "Background" },
   { key: "text", label: "Text" },
   { key: "ctaBackground", label: "Button" },
   { key: "ctaText", label: "Button text" },
 ];
 
-export default function StylePanel({ value, onChange }: { value: BannerStyle; onChange: (s: BannerStyle) => void }) {
-  const set = <K extends keyof BannerStyle>(key: K, v: BannerStyle[K]) => onChange({ ...value, [key]: v });
+export default function StylePanel({
+  value,
+  onChange,
+}: {
+  value: BannerStyle;
+  onChange: (s: BannerStyle) => void;
+}) {
+  const set = <K extends keyof BannerStyle>(key: K, v: BannerStyle[K]) =>
+    onChange({ ...value, [key]: v });
 
   return (
     <section className={styles.form}>
       <div className={styles.panelHead}>
-        <h2>Brand style</h2>
+        <h2 className={styles.step}>
+          <span className={`${styles.stepNum} ${styles.stepNum2}`}>2</span>Brand
+          style
+        </h2>
         <div className={styles.chips}>
           {PRESETS.map((p) => (
-            <button key={p.name} type="button" className={styles.chip} onClick={() => onChange(p.style)}>
+            <button
+              key={p.name}
+              type="button"
+              className={styles.chip}
+              onClick={() => onChange(p.style)}
+            >
               {p.name}
             </button>
           ))}
@@ -29,7 +54,11 @@ export default function StylePanel({ value, onChange }: { value: BannerStyle; on
       <div className={styles.styleGrid}>
         {COLORS.map((c) => (
           <label key={c.key} className={styles.colorField}>
-            <input type="color" value={value[c.key]} onChange={(e) => set(c.key, e.target.value)} />
+            <input
+              type="color"
+              value={value[c.key]}
+              onChange={(e) => set(c.key, e.target.value)}
+            />
             <span>{c.label}</span>
           </label>
         ))}
@@ -38,7 +67,10 @@ export default function StylePanel({ value, onChange }: { value: BannerStyle; on
       <div className={styles.row}>
         <label className={styles.field}>
           <span>Font</span>
-          <select value={value.font} onChange={(e) => set("font", e.target.value as FontId)}>
+          <select
+            value={value.font}
+            onChange={(e) => set("font", e.target.value as FontId)}
+          >
             {FONTS.map((f) => (
               <option key={f.id} value={f.id}>
                 {f.label}

@@ -77,3 +77,18 @@
 .banned { margin: 0 0 16px; font-size: 14px; color: var(--muted); }
 .banned summary { cursor: pointer; font-weight: 600; color: var(--ink); }
 .banned ul { margin: 8px 0 0; padding-left: 18px; }
+
+/* Livelier look */
+.step { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 20px; font-weight: 600; }
+.stepNum { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 999rem; background: #2846dc; color: #fff; font-size: 14px; font-weight: 700; }
+.stepNum2 { background: #8b5cf6; }
+.stepNum3 { background: #2f9e44; }
+section > .step { margin-bottom: 12px; }
+.primary { background: linear-gradient(90deg, #2846dc, #8b5cf6); box-shadow: 0 6px 18px rgba(40, 70, 220, 0.25); transition: transform 0.15s ease, box-shadow 0.15s ease; }
+.primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(139, 92, 246, 0.3); }
+.card { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+.card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(20, 20, 20, 0.08); }
+.status { position: absolute; top: 12px; left: 12px; border-radius: 999rem; padding: 3px 10px; font-size: 12px; font-weight: 600; z-index: 1; }
+.status_needsreview { background: #ebf3fc; color: #2846dc; border: 1px solid #c8e1ff; }
+.status_flagged { background: #ffe1e3; color: #9e1621; border: 1px solid #ffa2a9; }
+.status_approved { background: #d7ffd9; color: #0a7111; border: 1px solid #76ff7d; }
