@@ -170,6 +170,7 @@ export default function Studio() {
   return (
     <main className={styles.main}>
       <header className={styles.header}>
+        <span className={styles.tag}>AI creative automation</span>
         <div className={styles.brand}>
           <Logo />
           <h1>Creative Variant Studio</h1>

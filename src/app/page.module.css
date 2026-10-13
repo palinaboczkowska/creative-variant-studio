@@ -1,19 +1,21 @@
 .main { max-width: 1200px; margin: 0 auto; padding: 32px 16px 64px; }
-.header h1 { margin: 0 0 4px; font-size: 32px; }
-.header p { margin: 0 0 24px; color: var(--muted); }
+.header { background: var(--ink); color: #fff; border-radius: 1rem; padding: 32px 28px; margin-bottom: 24px; }
+.header h1 { margin: 0; font-size: 36px; font-weight: 600; }
+.header p { margin: 12px 0 0; color: #c8cfcf; max-width: 640px; }
+.tag { display: inline-block; background: var(--highlight); color: var(--ink); border-radius: 999rem; padding: 4px 12px; font-size: 13px; font-weight: 600; margin-bottom: 14px; }
 
-.form { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 16px; margin-bottom: 28px; }
+.form { background: var(--surface); border: 1px solid var(--line); border-radius: 1rem; padding: 20px; display: flex; flex-direction: column; gap: 16px; margin-bottom: 28px; }
 .field { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 240px; font-size: 14px; color: var(--muted); }
-.field textarea, .field input { border: 1px solid var(--line); border-radius: 10px; padding: 10px; color: var(--ink); background: #fff; }
+.field textarea, .field input { border: 1px solid var(--line); border-radius: 0.75rem; padding: 10px; color: var(--ink); background: #fff; }
 .row { display: flex; gap: 16px; flex-wrap: wrap; }
 
 .chips { display: flex; gap: 8px; flex-wrap: wrap; }
 .chip, .chipOn { border-radius: 999px; padding: 6px 14px; border: 1px solid var(--line); background: #fff; color: var(--ink); cursor: pointer; font-size: 14px; }
-.chipOn { background: var(--ink); color: #fff; border-color: var(--ink); }
+.chipOn { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-.primary { align-self: flex-start; background: var(--accent); color: #fff; border: none; border-radius: 10px; padding: 12px 20px; font-weight: 600; cursor: pointer; }
+.primary { align-self: flex-start; background: var(--accent); color: #fff; border: none; border-radius: 999rem; padding: 12px 24px; font-weight: 600; cursor: pointer; }
 .primary:disabled { opacity: 0.6; cursor: default; }
-.secondary { align-self: flex-start; background: var(--ink); color: #fff; border: none; border-radius: 8px; padding: 8px 14px; cursor: pointer; }
+.secondary { align-self: flex-start; background: var(--ink); color: #fff; border: none; border-radius: 999rem; padding: 8px 16px; cursor: pointer; }
 .error { color: var(--bad); margin: 0; }
 
 .summary { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
@@ -21,12 +23,12 @@
 .demo { color: var(--accent); font-weight: 400; }
 
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); gap: 16px; }
-.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 1rem; overflow: hidden; display: flex; flex-direction: column; }
 .flagged { border-color: var(--bad); }
 .approved { border-color: var(--ok); color: var(--ok); font-weight: 600; margin: 0; }
 .needsreview { border-color: var(--line); }
 
-.previewBox { position: relative; background: #ede9e0; padding: 16px; display: flex; justify-content: center; align-items: center; height: 252px; }
+.previewBox { position: relative; background: var(--accent-light); padding: 16px; display: flex; justify-content: center; align-items: center; height: 252px; }
 
 .meta { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
 .title { margin: 0; font-weight: 600; }
@@ -48,7 +50,7 @@
 .colorField input { width: 40px; height: 32px; border: 1px solid var(--line); border-radius: 8px; padding: 2px; background: #fff; cursor: pointer; }
 .field select { border: 1px solid var(--line); border-radius: 10px; padding: 9px; color: var(--ink); background: #fff; }
 .field input[type="range"] { accent-color: var(--accent); }
-.brand { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+.brand { display: flex; align-items: center; gap: 14px; }
 .brand h1 { margin: 0; }
 .editLabel { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
 .editLabel select { border: 1px solid var(--line); border-radius: 8px; padding: 7px; background: #fff; color: var(--ink); }

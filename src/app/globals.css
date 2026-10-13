@@ -1,12 +1,14 @@
 :root {
-  --bg: #f6f4ef;
-  --surface: #fffdf8;
-  --ink: #16213a;
-  --muted: #5a6478;
-  --line: #e2ddd2;
-  --accent: #c4552b;
-  --ok: #1f7a4d;
-  --bad: #b3261e;
+  --bg: #f6f5f1;
+  --surface: #ffffff;
+  --ink: #141414;
+  --muted: #5c6666;
+  --line: #dce3e2;
+  --accent: #2846dc;
+  --accent-light: #ebf3fc;
+  --highlight: #cdf5a0;
+  --ok: #0a7111;
+  --bad: #e31f2e;
 }
 
 * { box-sizing: border-box; }
@@ -15,8 +17,10 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font-family: var(--font-geist-sans), Arial, sans-serif;
+  font-family: var(--font-inter), Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-button, input, textarea { font: inherit; }
+h1, h2, h3 { font-family: var(--font-grotesk), Arial, sans-serif; letter-spacing: -0.02em; }
+
+button, input, textarea, select { font: inherit; }

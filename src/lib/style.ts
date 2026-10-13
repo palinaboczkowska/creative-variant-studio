@@ -35,6 +35,20 @@ export const FONTS: { id: FontId; label: string; cssVar: string }[] = [
 
 export const PRESETS: { name: string; style: BannerStyle }[] = [
   {
+    name: "Studio",
+    style: {
+      background: "#2846dc",
+      text: "#ffffff",
+      ctaBackground: "#cdf5a0",
+      ctaText: "#141414",
+      font: "grotesk",
+      textScale: 1,
+      radius: 12,
+      ctaShape: "pill",
+      align: "left",
+    },
+  },
+  {
     name: "Nordic",
     style: {
       background: "#16213a",
