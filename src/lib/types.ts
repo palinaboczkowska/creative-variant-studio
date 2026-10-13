@@ -1,7 +1,8 @@
 import type { StyleOverride } from "./style";
 
 export type GeneratedFormatId = "square" | "leaderboard" | "story";
-export type FormatId = GeneratedFormatId | "rectangle" | "skyscraper" | "billboard" | "custom";
+export type FormatId =
+  GeneratedFormatId | "rectangle" | "skyscraper" | "billboard" | "custom";
 
 export type Size = { width: number; height: number };
 
@@ -35,6 +36,8 @@ export interface Product {
 export interface BrandRules {
   tone: string;
   bannedWords: string[];
+  // Banned words translated into each selected language when the job is created.
+  bannedByLanguage?: Record<string, string[]>;
 }
 
 export interface Copy {

@@ -10,7 +10,9 @@ describe("customFormat", () => {
   });
 
   it("gives bigger banners room for more text", () => {
-    expect(customFormat(600, 500).maxHeadline).toBeGreaterThan(customFormat(300, 250).maxHeadline);
+    expect(customFormat(600, 500).maxHeadline).toBeGreaterThan(
+      customFormat(300, 250).maxHeadline,
+    );
   });
 
   it("clamps sizes outside the allowed range", () => {
@@ -20,7 +22,9 @@ describe("customFormat", () => {
   });
 
   it("resolves custom and standard formats", () => {
-    expect(resolveFormat("custom", { width: 320, height: 50 }).label).toBe("Custom 320×50");
+    expect(resolveFormat("custom", { width: 320, height: 50 }).label).toBe(
+      "Custom 320×50",
+    );
     expect(resolveFormat("square").width).toBe(1080);
   });
 });

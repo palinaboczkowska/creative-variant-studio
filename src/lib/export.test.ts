@@ -18,17 +18,31 @@ function variant(overrides: Partial<Variant>): Variant {
 
 describe("approvedToCsv", () => {
   it("exports only approved variants", () => {
-    const csv = approvedToCsv([variant({}), variant({ id: "2", status: "needs-review" })], DEFAULT_STYLE);
+    const csv = approvedToCsv(
+      [variant({}), variant({ id: "2", status: "needs-review" })],
+      DEFAULT_STYLE,
+    );
     expect(csv.trim().split("\n")).toHaveLength(2);
   });
 
   it("quotes cells with commas and quotes", () => {
-    const csv = approvedToCsv([variant({ copy: { headline: 'Stay dry, say "hi"', cta: "Go" } })], DEFAULT_STYLE);
+    const csv = approvedToCsv(
+      [variant({ copy: { headline: 'Stay dry, say "hi"', cta: "Go" } })],
+      DEFAULT_STYLE,
+    );
     expect(csv).toContain('"Stay dry, say ""hi"""');
   });
 
   it("uses the variant's own format and style changes", () => {
-    const csv = approvedToCsv([variant({ format: "skyscraper", style: { radius: 20, ctaShape: "pill" } })], DEFAULT_STYLE);
+    const csv = approvedToCsv(
+      [
+        variant({
+          format: "skyscraper",
+          style: { radius: 20, ctaShape: "pill" },
+        }),
+      ],
+      DEFAULT_STYLE,
+    );
     const row = csv.trim().split("\n")[1].split(",");
     expect(row.slice(3, 6)).toEqual(["skyscraper", "160", "600"]);
     expect(row).toContain("pill");
@@ -37,7 +51,11 @@ describe("approvedToCsv", () => {
 
   it("links the banner image with the site address", () => {
     const id = "6f1c2a52-8a39-4c1e-9b7e-2f1b2c3d4e5f";
-    const csv = approvedToCsv([variant({ image: { id, layout: "side" } })], DEFAULT_STYLE, "https://example.run.app");
+    const csv = approvedToCsv(
+      [variant({ image: { id, layout: "side" } })],
+      DEFAULT_STYLE,
+      "https://example.run.app",
+    );
     expect(csv).toContain(`https://example.run.app/api/images/${id},side`);
   });
 });

@@ -1,7 +1,21 @@
 import type { AdFormat, BrandRules, Check, Copy, Product } from "./types";
 
 // Normal code makes the decisions that must be right. The model only writes.
-export function checkCopy(copy: Copy, format: AdFormat, product: Product, rules: BrandRules): Check[] {
+export function bannedWordsFor(rules: BrandRules, language?: string): string[] {
+  const translated = language ? (rules.bannedByLanguage?.[language] ?? []) : [];
+  const all = [...rules.bannedWords, ...translated]
+    .map((w) => w.trim().toLowerCase())
+    .filter(Boolean);
+  return [...new Set(all)];
+}
+
+export function checkCopy(
+  copy: Copy,
+  format: AdFormat,
+  product: Product,
+  rules: BrandRules,
+  language?: string,
+): Check[] {
   const checks: Check[] = [];
 
   checks.push({
@@ -17,7 +31,9 @@ export function checkCopy(copy: Copy, format: AdFormat, product: Product, rules:
   });
 
   const text = `${copy.headline} ${copy.cta}`.toLowerCase();
-  const banned = rules.bannedWords.map((w) => w.trim().toLowerCase()).filter(Boolean).filter((w) => text.includes(w));
+  const banned = bannedWordsFor(rules, language).filter((w) =>
+    text.includes(w),
+  );
   checks.push({
     ok: banned.length === 0,
     rule: "Brand words",
@@ -26,12 +42,16 @@ export function checkCopy(copy: Copy, format: AdFormat, product: Product, rules:
 
   // Every number in the copy must come from the product data, so the
   // model cannot invent a price or a discount.
-  const allowed = new Set(numbersIn(`${product.price} ${product.description} ${product.name}`));
+  const allowed = new Set(
+    numbersIn(`${product.price} ${product.description} ${product.name}`),
+  );
   const invented = numbersIn(text).filter((n) => !allowed.has(n));
   checks.push({
     ok: invented.length === 0,
     rule: "No invented numbers",
-    detail: invented.length ? `Not in product data: ${invented.join(", ")}` : "All numbers come from the data",
+    detail: invented.length
+      ? `Not in product data: ${invented.join(", ")}`
+      : "All numbers come from the data",
   });
 
   checks.push({
@@ -52,7 +72,9 @@ export function parseProducts(csv: string): Product[] {
     .map((line) => line.trim())
     .filter(Boolean)
     .map((line) => {
-      const [name = "", price = "", ...rest] = line.split(";").map((p) => p.trim());
+      const [name = "", price = "", ...rest] = line
+        .split(";")
+        .map((p) => p.trim());
       return { name, price, description: rest.join("; ") };
     })
     .filter((p) => p.name.length > 0);

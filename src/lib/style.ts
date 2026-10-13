@@ -2,7 +2,9 @@ export type FontId = "geist" | "grotesk" | "playfair" | "bebas";
 export type CtaShape = "square" | "rounded" | "pill";
 export type Align = "left" | "center";
 
-export type StyleOverride = Partial<Pick<BannerStyle, "radius" | "ctaShape" | "textScale" | "align">>;
+export type StyleOverride = Partial<
+  Pick<BannerStyle, "radius" | "ctaShape" | "textScale" | "align">
+>;
 
 export interface BannerStyle {
   background: string;
@@ -18,8 +20,16 @@ export interface BannerStyle {
 
 export const FONTS: { id: FontId; label: string; cssVar: string }[] = [
   { id: "geist", label: "Geist (clean)", cssVar: "var(--font-geist-sans)" },
-  { id: "grotesk", label: "Space Grotesk (tech)", cssVar: "var(--font-grotesk)" },
-  { id: "playfair", label: "Playfair Display (premium)", cssVar: "var(--font-playfair)" },
+  {
+    id: "grotesk",
+    label: "Space Grotesk (tech)",
+    cssVar: "var(--font-grotesk)",
+  },
+  {
+    id: "playfair",
+    label: "Playfair Display (premium)",
+    cssVar: "var(--font-playfair)",
+  },
   { id: "bebas", label: "Bebas Neue (bold)", cssVar: "var(--font-bebas)" },
 ];
 
@@ -92,6 +102,9 @@ export function ctaRadius(shape: CtaShape): number {
   return shape === "pill" ? 999 : shape === "rounded" ? 4 : 0;
 }
 
-export function effectiveStyle(brand: BannerStyle, override?: StyleOverride): BannerStyle {
+export function effectiveStyle(
+  brand: BannerStyle,
+  override?: StyleOverride,
+): BannerStyle {
   return { ...brand, ...override };
 }

@@ -16,9 +16,13 @@ async function findVariant({ params }: Params) {
 // until their copy passes every check.
 export async function POST(_request: Request, ctx: Params) {
   const { job, variant } = await findVariant(ctx);
-  if (!job || !variant) return Response.json({ error: "Not found" }, { status: 404 });
+  if (!job || !variant)
+    return Response.json({ error: "Not found" }, { status: 404 });
   if (variant.status === "flagged") {
-    return Response.json({ error: "Flagged variants cannot be approved" }, { status: 409 });
+    return Response.json(
+      { error: "Flagged variants cannot be approved" },
+      { status: 409 },
+    );
   }
 
   variant.status = "approved";
@@ -61,10 +65,12 @@ const Edit = z.object({
 // the new format's limits, and an edited variant always goes back to review.
 export async function PATCH(request: Request, ctx: Params) {
   const parsed = Edit.safeParse(await request.json().catch(() => null));
-  if (!parsed.success) return Response.json({ error: "Invalid copy" }, { status: 400 });
+  if (!parsed.success)
+    return Response.json({ error: "Invalid copy" }, { status: 400 });
 
   const { job, variant } = await findVariant(ctx);
-  if (!job || !variant) return Response.json({ error: "Not found" }, { status: 404 });
+  if (!job || !variant)
+    return Response.json({ error: "Not found" }, { status: 404 });
 
   const { headline, cta, format: formatId, size, style, image } = parsed.data;
   if (image && !(await getImage(image.id))) {
@@ -73,7 +79,11 @@ export async function PATCH(request: Request, ctx: Params) {
   if (formatId) variant.format = formatId;
   if (variant.format === "custom") {
     if (size) variant.size = size;
-    if (!variant.size) return Response.json({ error: "Custom format needs a size" }, { status: 400 });
+    if (!variant.size)
+      return Response.json(
+        { error: "Custom format needs a size" },
+        { status: 400 },
+      );
   } else {
     delete variant.size;
   }
@@ -82,8 +92,16 @@ export async function PATCH(request: Request, ctx: Params) {
   else if (image) variant.image = image;
   const format = resolveFormat(variant.format, variant.size);
   variant.copy = { headline, cta };
-  variant.checks = checkCopy(variant.copy, format, variant.product, job.rules);
-  variant.status = variant.checks.every((c) => c.ok) ? "needs-review" : "flagged";
+  variant.checks = checkCopy(
+    variant.copy,
+    format,
+    variant.product,
+    job.rules,
+    variant.language,
+  );
+  variant.status = variant.checks.every((c) => c.ok)
+    ? "needs-review"
+    : "flagged";
   await saveJob(job);
   return Response.json(variant);
 }

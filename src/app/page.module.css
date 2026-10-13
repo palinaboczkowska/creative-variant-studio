@@ -72,3 +72,6 @@
 .bannerShade { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.45); }
 .photo { display: block; width: 100%; height: 100%; }
 .preview > *, .previewWide > * { max-width: 100%; }
+.banned { margin: 0 0 16px; font-size: 14px; color: var(--muted); }
+.banned summary { cursor: pointer; font-weight: 600; color: var(--ink); }
+.banned ul { margin: 8px 0 0; padding-left: 18px; }

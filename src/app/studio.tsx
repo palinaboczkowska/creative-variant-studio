@@ -269,6 +269,22 @@ export default function Studio() {
             </div>
           </div>
 
+          {job.rules.bannedByLanguage &&
+            Object.keys(job.rules.bannedByLanguage).length > 0 && (
+              <details className={styles.banned}>
+                <summary>Banned words checked per language</summary>
+                <ul>
+                  {Object.entries(job.rules.bannedByLanguage).map(
+                    ([language, words]) => (
+                      <li key={language}>
+                        <strong>{language}:</strong> {words.join(", ")}
+                      </li>
+                    ),
+                  )}
+                </ul>
+              </details>
+            )}
+
           <div className={styles.grid}>
             {visible.map((v) => (
               <VariantCard

@@ -26,7 +26,11 @@ const COLUMNS = [
 ];
 
 // One row per approved variant, with the final copy and the style it was approved with.
-export function approvedToCsv(variants: Variant[], brand: BannerStyle, baseUrl = ""): string {
+export function approvedToCsv(
+  variants: Variant[],
+  brand: BannerStyle,
+  baseUrl = "",
+): string {
   const rows = variants
     .filter((v) => v.status === "approved")
     .map((v) => {
@@ -55,7 +59,10 @@ export function approvedToCsv(variants: Variant[], brand: BannerStyle, baseUrl =
         v.image?.layout ?? "",
       ];
     });
-  return [COLUMNS, ...rows].map((row) => row.map(csvCell).join(",")).join("\n") + "\n";
+  return (
+    [COLUMNS, ...rows].map((row) => row.map(csvCell).join(",")).join("\n") +
+    "\n"
+  );
 }
 
 function csvCell(value: string | number): string {
